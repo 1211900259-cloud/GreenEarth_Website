@@ -1,19 +1,618 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-<title>VinFast Information Library</title>
-<link rel="stylesheet" href="css/style.css">
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VinFast – Thư Viện Xe Ô Tô</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --vf-red: #E31837;
+    --vf-red-dark: #b01229;
+    --vf-gold: #C9A84C;
+    --vf-white: #F5F3F0;
+    --vf-dark: #0D0D0D;
+    --vf-dark2: #141414;
+    --vf-mid: #1E1E1E;
+    --vf-border: rgba(255,255,255,0.08);
+    --vf-text-muted: rgba(255,255,255,0.45);
+    --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Barlow', sans-serif; background: var(--vf-dark); color: var(--vf-white); overflow-x: hidden; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--vf-dark); }
+  ::-webkit-scrollbar-thumb { background: var(--vf-red); }
 
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 48px; height: 72px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+    transition: background .4s var(--ease), backdrop-filter .4s;
+  }
+  nav.scrolled { background: rgba(10,10,10,0.96); backdrop-filter: blur(20px); border-bottom: 1px solid var(--vf-border); }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo svg { width: 34px; height: 34px; }
+  .nav-logo-text { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: .15em; color: var(--vf-white); }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { font-size: 13px; font-weight: 500; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.7); text-decoration: none; transition: color .25s; position: relative; }
+  .nav-links a::after { content:''; position:absolute; bottom:-4px; left:0; right:100%; height:1px; background:var(--vf-red); transition:right .3s var(--ease); }
+  .nav-links a:hover { color: #fff; }
+  .nav-links a:hover::after { right: 0; }
+  .nav-cta { display: flex; gap: 12px; }
+  .btn-outline { border: 1px solid rgba(255,255,255,.35); color: var(--vf-white); background: transparent; padding: 9px 20px; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: all .25s; }
+  .btn-outline:hover { background: var(--vf-white); color: var(--vf-dark); border-color: var(--vf-white); }
+  .btn-solid { background: var(--vf-red); color: #fff; border: 1px solid var(--vf-red); padding: 9px 20px; font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: all .25s; }
+  .btn-solid:hover { background: var(--vf-red-dark); }
+
+  .hero { position: relative; height: 100vh; min-height: 640px; display: flex; align-items: flex-end; overflow: hidden; }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,.25) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,.65) 65%, rgba(0,0,0,.95) 100%), #0d0d0d;
+  }
+  .hero-bg::before {
+    content:''; position:absolute; inset:0;
+    background-image: linear-gradient(rgba(227,24,55,.04) 1px,transparent 1px), linear-gradient(90deg, rgba(227,24,55,.04) 1px,transparent 1px);
+    background-size: 80px 80px;
+    animation: gridShift 20s linear infinite;
+  }
+  @keyframes gridShift { to { transform: translate(80px,80px); } }
+
+  .hero-photo {
+    position: absolute; right: 0; bottom: 0; width: 62%; height: 85%;
+    object-fit: cover; object-position: center bottom;
+    opacity: 0;
+    animation: carReveal 1.4s var(--ease) .4s forwards;
+    mask-image: linear-gradient(to left, rgba(0,0,0,.9) 40%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,.9) 40%, transparent 100%);
+  }
+  @keyframes carReveal { from { opacity:0; transform:translateX(60px); } to { opacity:1; transform:translateX(0); } }
+
+  .hero-accent { position:absolute; left:0; bottom:0; width:100%; height:2px; background: linear-gradient(to right, var(--vf-red), transparent 55%); }
+
+  .hero-content {
+    position: relative; z-index: 2; padding: 0 48px 80px; max-width: 620px;
+    opacity: 0; animation: fadeUp 1s var(--ease) .2s forwards;
+  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+
+  .hero-eyebrow { font-size:11px; font-weight:600; letter-spacing:.25em; text-transform:uppercase; color:var(--vf-red); margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+  .hero-eyebrow::before { content:''; width:32px; height:1px; background:var(--vf-red); }
+  .hero-title { font-family:'Cormorant Garamond',serif; font-size:clamp(48px,7vw,86px); font-weight:300; line-height:1; margin-bottom:22px; }
+  .hero-title em { font-style:italic; color:var(--vf-gold); }
+  .hero-desc { font-size:15px; font-weight:300; color:rgba(255,255,255,.62); line-height:1.7; max-width:430px; margin-bottom:32px; }
+  .hero-stats { display:flex; gap:40px; border-top:1px solid var(--vf-border); padding-top:24px; margin-bottom:32px; }
+  .stat-number { font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:600; line-height:1; margin-bottom:3px; }
+  .stat-label { font-size:10px; font-weight:400; color:var(--vf-text-muted); letter-spacing:.08em; text-transform:uppercase; }
+  .hero-btns { display:flex; gap:12px; }
+  .h-btn { padding:13px 30px; font-family:'Barlow',sans-serif; font-size:12px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; border:none; transition:all .25s; }
+  .h-btn-red { background:var(--vf-red); color:#fff; }
+  .h-btn-red:hover { background:var(--vf-red-dark); }
+  .h-btn-ghost { background:transparent; color:var(--vf-white); border:1px solid rgba(255,255,255,.3)!important; }
+  .h-btn-ghost:hover { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.5)!important; }
+
+  .filter-section { position:sticky; top:72px; z-index:50; background:var(--vf-dark2); border-bottom:1px solid var(--vf-border); }
+  .filter-inner { max-width:1440px; margin:0 auto; padding:0 48px; display:flex; align-items:center; overflow-x:auto; scrollbar-width:none; }
+  .filter-inner::-webkit-scrollbar { display:none; }
+  .filter-label { font-size:11px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--vf-text-muted); white-space:nowrap; padding:20px 28px 20px 0; border-right:1px solid var(--vf-border); margin-right:24px; flex-shrink:0; }
+  .filter-tabs { display:flex; list-style:none; }
+  .filter-tab { position:relative; padding:20px 22px; font-size:13px; font-weight:500; letter-spacing:.05em; color:var(--vf-text-muted); cursor:pointer; white-space:nowrap; transition:color .25s; flex-shrink:0; user-select:none; }
+  .filter-tab::after { content:''; position:absolute; bottom:0; left:0; right:100%; height:2px; background:var(--vf-red); transition:right .3s var(--ease); }
+  .filter-tab:hover { color:rgba(255,255,255,.85); }
+  .filter-tab.active { color:var(--vf-white); }
+  .filter-tab.active::after { right:0; }
+  .tab-count { display:inline-flex; align-items:center; justify-content:center; width:17px; height:17px; background:var(--vf-red); border-radius:50%; font-size:10px; font-weight:600; color:#fff; margin-left:7px; opacity:0; transition:opacity .25s; }
+  .filter-tab.active .tab-count { opacity:1; }
+
+  .sort-bar { max-width:1440px; margin:0 auto; padding:22px 48px; display:flex; align-items:center; justify-content:space-between; }
+  .sort-info { font-size:13px; color:var(--vf-text-muted); }
+  .sort-info span { color:var(--vf-white); }
+  .sort-controls { display:flex; gap:10px; align-items:center; }
+  .sort-lbl { font-size:11px; color:var(--vf-text-muted); text-transform:uppercase; letter-spacing:.08em; }
+  .sort-select { background:var(--vf-mid); border:1px solid var(--vf-border); color:var(--vf-white); padding:8px 12px; font-family:'Barlow',sans-serif; font-size:12px; cursor:pointer; outline:none; }
+
+  .cars-section { max-width:1440px; margin:0 auto; padding:0 48px 100px; }
+  .cars-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; }
+
+  .car-card { position:relative; background:var(--vf-mid); overflow:hidden; cursor:pointer; transition:transform .4s var(--ease); display:flex; flex-direction:column; }
+  .car-card:hover { z-index:2; transform:scale(1.012); }
+  .car-card.featured { grid-column:span 2; }
+  .car-card.hidden { display:none; }
+
+  .car-card-image { position:relative; width:100%; aspect-ratio:16/10; background:#111; overflow:hidden; flex-shrink:0; }
+  .car-card.featured .car-card-image { aspect-ratio:16/9; }
+  .car-card-image::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,.65) 0%, rgba(0,0,0,0) 55%); transition:opacity .4s; }
+  .car-card:hover .car-card-image::after { opacity:.5; }
+  .car-img { width:100%; height:100%; object-fit:cover; object-position:center; transition:transform .55s var(--ease); display:block; }
+  .car-card:hover .car-img { transform:scale(1.06); }
+
+  .car-badge { position:absolute; top:14px; left:14px; z-index:2; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; padding:4px 10px; background:var(--vf-red); color:#fff; }
+  .car-badge.electric { background:#0a6e4a; }
+  .car-badge.gold { background:var(--vf-gold); color:var(--vf-dark); }
+
+  .car-card-body { padding:22px 26px 26px; display:flex; flex-direction:column; flex:1; border-top:1px solid var(--vf-border); }
+  .car-type { font-size:10px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--vf-red); margin-bottom:7px; }
+  .car-name { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:300; line-height:1.05; color:var(--vf-white); margin-bottom:4px; }
+  .car-card.featured .car-name { font-size:38px; }
+  .car-subtitle { font-size:12px; font-weight:300; color:var(--vf-text-muted); margin-bottom:18px; }
+  .car-specs { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:14px 0; border-top:1px solid var(--vf-border); border-bottom:1px solid var(--vf-border); margin-bottom:18px; }
+  .spec-item { text-align:center; }
+  .spec-value { font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; color:var(--vf-white); display:block; line-height:1.1; margin-bottom:2px; }
+  .spec-unit { color:var(--vf-text-muted); font-size:10px; }
+  .spec-label { font-size:10px; color:var(--vf-text-muted); letter-spacing:.07em; text-transform:uppercase; }
+  .car-price { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:500; color:var(--vf-white); margin-bottom:14px; }
+  .car-price small { font-size:11px; font-weight:400; color:var(--vf-text-muted); font-family:'Barlow',sans-serif; margin-left:4px; }
+  .car-actions { display:flex; gap:8px; margin-top:auto; }
+  .car-btn { flex:1; padding:11px 0; font-family:'Barlow',sans-serif; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:all .25s; border:none; text-align:center; }
+  .car-btn-primary { background:var(--vf-red); color:#fff; }
+  .car-btn-primary:hover { background:var(--vf-red-dark); }
+  .car-btn-secondary { background:transparent; color:var(--vf-white); border:1px solid var(--vf-border)!important; }
+  .car-btn-secondary:hover { border-color:rgba(255,255,255,.35)!important; background:rgba(255,255,255,.05); }
+
+  .info-banner { background:var(--vf-mid); border-top:1px solid var(--vf-border); border-bottom:1px solid var(--vf-border); padding:48px; }
+  .info-banner-inner { max-width:1440px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:48px; }
+  .info-icon { width:40px; height:40px; border:1px solid var(--vf-red); display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+  .info-title { font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--vf-white); margin-bottom:7px; }
+  .info-desc { font-size:13px; font-weight:300; color:var(--vf-text-muted); line-height:1.7; }
+
+  footer { background:#080808; padding:56px 48px 36px; border-top:1px solid var(--vf-border); }
+  .footer-inner { max-width:1440px; margin:0 auto; }
+  .footer-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:44px; padding-bottom:44px; border-bottom:1px solid var(--vf-border); }
+  .footer-brand .brand-name { font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:700; letter-spacing:.15em; display:block; margin-bottom:8px; }
+  .footer-brand p { font-size:13px; color:var(--vf-text-muted); max-width:260px; line-height:1.6; }
+  .footer-links { display:flex; gap:56px; }
+  .footer-col h4 { font-size:11px; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--vf-white); margin-bottom:18px; }
+  .footer-col ul { list-style:none; display:flex; flex-direction:column; gap:9px; }
+  .footer-col a { font-size:13px; font-weight:300; color:var(--vf-text-muted); text-decoration:none; transition:color .2s; }
+  .footer-col a:hover { color:var(--vf-white); }
+  .footer-bottom { display:flex; justify-content:space-between; align-items:center; }
+  .footer-bottom p { font-size:11px; color:var(--vf-text-muted); }
+  .footer-bottom a { color:var(--vf-red); text-decoration:none; }
+
+  .animate-in { opacity:0; transform:translateY(18px); transition:opacity .6s var(--ease), transform .6s var(--ease); }
+  .animate-in.visible { opacity:1; transform:translateY(0); }
+
+  @media(max-width:1024px){ .cars-grid{grid-template-columns:repeat(2,1fr);} .car-card.featured{grid-column:span 2;} }
+  @media(max-width:768px){
+    nav { padding:0 20px; }
+    .nav-links,.nav-cta { display:none; }
+    .hero-content { padding:0 20px 60px; }
+    .hero-photo { width:100%; opacity:.25; }
+    .filter-inner,.sort-bar,.cars-section { padding-left:20px; padding-right:20px; }
+    .cars-grid { grid-template-columns:1fr; }
+    .car-card.featured { grid-column:span 1; }
+    .info-banner { padding:32px 20px; }
+    .info-banner-inner { grid-template-columns:1fr; gap:28px; }
+    footer { padding:36px 20px 28px; }
+    .footer-top { flex-direction:column; gap:28px; }
+    .footer-links { flex-direction:column; gap:28px; }
+  }
+</style>
+</head>
 <body>
 
-<h1>VinFast Information Library</h1>
+<!-- NAV -->
+<nav id="navbar">
+  <a class="nav-logo" href="#">
+    <svg viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="19" stroke="#E31837" stroke-width="1.5"/>
+      <path d="M12 26L20 14L28 26" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M14.5 22H25.5" stroke="#E31837" stroke-width="1.5"/>
+    </svg>
+    <span class="nav-logo-text">VINFAST</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#">Xe ô tô</a></li>
+    <li><a href="#">Xe máy điện</a></li>
+    <li><a href="#">Đặt lịch lái thử</a></li>
+    <li><a href="#">Dịch vụ</a></li>
+    <li><a href="#">Tìm đại lý</a></li>
+  </ul>
+  <div class="nav-cta">
+    <button class="btn-outline">Lái thử</button>
+    <button class="btn-solid">Báo giá</button>
+  </div>
+</nav>
 
-<img src="logo-vinfast-inkythuatso-21-11-08-55.jpg" width="200">
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <img class="hero-photo"
+    src="https://vinfastauto.us/themes/custom/vinfast_v2/images/v3/homepage/header-vf-8.webp"
+    alt="VinFast VF 8"
+    onerror="this.style.display='none'">
+  <div class="hero-content">
+    <div class="hero-eyebrow">Thư Viện Xe Điện</div>
+    <h1 class="hero-title">Hành trình<br><em>điện hoá</em><br>Việt Nam</h1>
+    <p class="hero-desc">Khám phá toàn bộ dòng xe điện VinFast — thiết kế cùng Pininfarina, công nghệ thuần điện, tương lai bắt đầu từ hôm nay.</p>
+    <div class="hero-stats">
+      <div class="stat-item"><div class="stat-number">8+</div><div class="stat-label">Mẫu xe</div></div>
+      <div class="stat-item"><div class="stat-number">600<span style="font-size:16px">km</span></div><div class="stat-label">Phạm vi tối đa</div></div>
+      <div class="stat-item"><div class="stat-number">100%</div><div class="stat-label">Thuần điện</div></div>
+    </div>
+    <div class="hero-btns">
+      <button class="h-btn h-btn-red">Khám phá ngay</button>
+      <button class="h-btn h-btn-ghost">Đặt lịch lái thử</button>
+    </div>
+  </div>
+  <div class="hero-accent"></div>
+</section>
 
-<p>Welcome to VinFast Information Library website</p>
+<!-- FILTER -->
+<div class="filter-section">
+  <div class="filter-inner">
+    <span class="filter-label">Lọc theo</span>
+    <ul class="filter-tabs" id="filterTabs">
+      <li class="filter-tab active" data-filter="all">Tất cả <span class="tab-count">8</span></li>
+      <li class="filter-tab" data-filter="mini">Mini SUV</li>
+      <li class="filter-tab" data-filter="suv-c">SUV cỡ nhỏ</li>
+      <li class="filter-tab" data-filter="suv-b">SUV cỡ trung</li>
+      <li class="filter-tab" data-filter="suv-d">SUV hạng D</li>
+      <li class="filter-tab" data-filter="suv-e">SUV hạng E</li>
+      <li class="filter-tab" data-filter="pickup">Bán tải</li>
+    </ul>
+  </div>
+</div>
 
-<script src="js/script.js"></script>
+<!-- SORT BAR -->
+<div class="sort-bar animate-in">
+  <div class="sort-info">Hiển thị <span id="carCount">8</span> mẫu xe</div>
+  <div class="sort-controls">
+    <span class="sort-lbl">Sắp xếp:</span>
+    <select class="sort-select" id="sortSelect">
+      <option>Giá tăng dần</option>
+      <option>Giá giảm dần</option>
+      <option>Tên A–Z</option>
+      <option>Phạm vi pin</option>
+    </select>
+  </div>
+</div>
 
+<!-- CARS GRID -->
+<section class="cars-section">
+  <div class="cars-grid" id="carsGrid">
+
+    <!-- VF 3 FEATURED -->
+    <div class="car-card featured animate-in" data-category="mini" data-price="240">
+      <div class="car-card-image">
+        <span class="car-badge gold">Mới nhất</span>
+        <img class="car-img"
+          src="https://i0.wp.com/paultan.org/image/2024/04/PT_BIMS_2024_Vinfast_VF3-3.jpg?w=900&h=600&ssl=1"
+          alt="VinFast VF 3"
+          onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/VinFast_VF3_BIMS_2024.jpg/1280px-VinFast_VF3_BIMS_2024.jpg'">
+      </div>
+      <div class="car-card-body">
+        <div class="car-type">Mini SUV · Đô thị</div>
+        <div class="car-name">VF 3</div>
+        <div class="car-subtitle">Smart City — Nhỏ gọn, cá tính, thuần điện</div>
+        <div class="car-specs">
+          <div class="spec-item"><span class="spec-value">150<span class="spec-unit">km</span></span><span class="spec-label">Phạm vi</span></div>
+          <div class="spec-item"><span class="spec-value">42<span class="spec-unit">kW</span></span><span class="spec-label">Động cơ</span></div>
+          <div class="spec-item"><span class="spec-value">4<span class="spec-unit">chỗ</span></span><span class="spec-label">Số ghế</span></div>
+        </div>
+        <div class="car-price">Từ 240.000.000 <small>VNĐ</small></div>
+        <div class="car-actions">
+          <button class="car-btn car-btn-primary">Tìm hiểu thêm</button>
+          <button class="car-btn car-btn-secondary">Báo giá</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VF 5 -->
+    <div class="car-card animate-in" data-category="mini" data-price="458">
+      <div class="car-card-image">
+        <span class="car-badge electric">Thuần điện</span>
+        <img class="car-img"
+          src="https://i1.wp.com/paultan.org/image/2024/04/PT_BIMS_2024_Vinfast_VF5-3.jpg?w=900&h=600&ssl=1"
+          alt="VinFast VF 5"
+          onerror="this.src='https://static-cms-prod.vinfastauto.us/2024-12/vf5.webp'">
+      </div>
+      <div class="car-card-body">
+        <div class="car-type">Mini SUV · Gia đình</div>
+        <div class="car-name">VF 5</div>
+        <div class="car-subtitle">Urban Plus — Rộng hơn, thông minh hơn</div>
+        <div class="car-specs">
+          <div class="spec-item"><span class="spec-value">326<span class="spec-unit">km</span></span><span class="spec-label">Phạm vi</span></div>
+          <div class="spec-item"><span class="spec-value">62<span class="spec-unit">kW</span></span><span class="spec-label">Động cơ</span></div>
+          <div class="spec-item"><span class="spec-value">5<span class="spec-unit">chỗ</span></span><span class="spec-label">Số ghế</span></div>
+        </div>
+        <div class="car-price">Từ 458.000.000 <small>VNĐ</small></div>
+        <div class="car-actions">
+          <button class="car-btn car-btn-primary">Tìm hiểu thêm</button>
+          <button class="car-btn car-btn-secondary">Báo giá</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VF 6 -->
+    <div class="car-card animate-in" data-category="suv-c" data-price="675">
+      <div class="car-card-image">
+        <span class="car-badge electric">Thuần điện</span>
+        <img class="car-img"
+          src="https://i0.wp.com/paultan.org/image/2024/04/PT_BIMS_2024_Vinfast_VF6-3.jpg?w=900&h=600&ssl=1"
+          alt="VinFast VF 6"
+          onerror="this.src='https://static-cms-prod.vinfastauto.us/2024-12/vf6.webp'">
+      </div>
+      <div class="car-card-body">
+        <div class="car-type">SUV Cỡ nhỏ · 5 chỗ</div>
+        <div class="car-name">VF 6</div>
+        <div class="car-subtitle">Compact Plus — Hiện đại, rộng rãi, thân thiện</div>
+        <div class="car-specs">
+          <div class="spec-item"><span class="spec-value">399<span class="spec-unit">km</span></span><span class="spec-label">Phạm vi</span></div>
+          <div class="spec-item"><span class="spec-value">127<span class="spec-unit">kW</span></span><span class="spec-label">Động cơ</span></div>
+          <div class="spec-item"><span class="spec-value">5<span class="spec-unit">chỗ</span></span><span class="spec-label">Số ghế</span></div>
+        </div>
+        <div class="car-price">Từ 675.000.000 <small>VNĐ</small></div>
+        <div class="car-actions">
+          <button class="car-btn car-btn-primary">Tìm hiểu thêm</button>
+          <button class="car-btn car-btn-secondary">Báo giá</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VF 7 -->
+    <div class="car-card animate-in" data-category="suv-b" data-price="850">
+      <div class="car-card-image">
+        <span class="car-badge electric">Thuần điện</span>
+        <img class="car-img"
+          src="https://vinfastauto.us/themes/custom/vinfast_v2/images/v3/homepage/header-vf-7.webp"
+          alt="VinFast VF 7"
+          onerror="this.src='https://static-cms-prod.vinfastauto.us/2024-12/vf7.webp'">
+      </div>
+      <div class="car-card-body">
+        <div class="car-type">SUV Cỡ trung · 5 chỗ</div>
+        <div class="car-name">VF 7</div>
+        <div class="car-subtitle">Sport Crossover — Mạnh mẽ, khí động học</div>
+        <div class="car-specs">
+          <div class="spec-item"><span class="spec-value">431<span class="spec-unit">km</span></span><span class="spec-label">Phạm vi</span></div>
+          <div class="spec-item"><span class="spec-value">260<span class="spec-unit">kW</span></span><span class="spec-label">Động cơ</span></div>
+          <div class="spec-item"><span class="spec-value">5<span class="spec-unit">chỗ</span></span><span class="spec-label">Số ghế</span></div>
+        </div>
+        <div class="car-price">Từ 850.000.000 <small>VNĐ</small></div>
+        <div class="car-actions">
+          <button class="car-btn car-btn-primary">Tìm hiểu thêm</button>
+          <button class="car-btn car-btn-secondary">Báo giá</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VF 8 FEATURED -->
+    <div class="car-card featured animate-in" data-category="suv-d" data-price="1069">
+      <div class="car-card-image">
+        <span class="car-badge">Bán chạy</span>
+        <img class="car-img"
+          src="https://vinfastauto.us/themes/custom/vinfast_v2/images/v3/homepage/header-vf-8.webp"
+          alt="VinFast VF 8"
+          onerror="this.src='https://i2.wp.com/paultan.org/image/2024/04/PT_BIMS_2024_Vinfast_VF8-3.jpg?w=900&ssl=1'">
+      </div>
+      <div class="car-card-body">
+        <div class="car-type">SUV Hạng D · 5 chỗ · Pininfarina</div>
+        <div class="car-name">VF 8</div>
+        <div class="car-subtitle">Power & Elegance — Hai phiên bản Eco & Plus, AWD tùy chọn</div>
+        <div class="car-specs">
+          <div class="spec-item"><span class="spec-value">447<span class="spec-unit">km</span></span><span class="spec-label">Phạm vi</span></div>
+          <div class="spec-item"><span class="spec-value">300<span class="spec-unit">kW</span></span><span class="spec-label">Động cơ</span></div>
+          <div class="spec-item"><span class="spec-value">5<span class="spec-unit">chỗ</span></span><span class="spec-label">Số ghế</span></div>
+        </div>
+        <div class="car-price">Từ 1.069.000.000 <small>VNĐ</small></div>
+        <div class="car-actions">
+          <button class="car-btn car-btn-primary">Tìm hiểu thêm</button>
+          <button class="car-btn car-btn-secondary">Báo giá</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VF 9 -->
+    <div class="car-card animate-in" data-category="suv-e" data-price="1600">
+      <div class="car-card-image">
+        <span class="car-badge gold">Hạng sang</span>
+        <img class="car-img"
+          src="https://vinfastauto.us/themes/custom/vinfast_v2/images/v3/homepage/header-vf-9.webp"
+          alt="VinFast VF 9"
+          onerror="this.src='https://static-cms-prod.vinfastauto.us/2024-12/vf9.webp'">
+      </div>
+      <div class="car-card-body">
+        <div class="car-type">SUV Hạng E · 7 chỗ · Prestige</div>
+        <div class="car-name">VF 9</div>
+        <div class="car-subtitle">Flagship — Hạng sang, 3 hàng ghế, phạm vi vượt trội</div>
+        <div class="car-specs">
+          <div class="spec-item"><span class="spec-value">594<span class="spec-unit">km</span></span><span class="spec-label">Phạm vi</span></div>
+          <div class="spec-item"><span class="spec-value">300<span class="spec-unit">kW</span></span><span class="spec-label">Động cơ</span></div>
+          <div class="spec-item"><span class="spec-value">7<span class="spec-unit">chỗ</span></span><span class="spec-label">Số ghế</span></div>
+        </div>
+        <div class="car-price">Từ 1.600.000.000 <small>VNĐ</small></div>
+        <div class="car-actions">
+          <button class="car-btn car-btn-primary">Tìm hiểu thêm</button>
+          <button class="car-btn car-btn-secondary">Báo giá</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VF Wild -->
+    <div class="car-card animate-in" data-category="pickup" data-price="1200">
+      <div class="car-card-image">
+        <span class="car-badge gold">Sắp ra mắt</span>
+        <img class="car-img"
+          src="https://static-cms-prod.vinfastauto.us/2024-11/VF_Wild_01.webp"
+          alt="VinFast VF Wild"
+          onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/VinFast_VF_Wild_CES_2024.jpg/1280px-VinFast_VF_Wild_CES_2024.jpg'">
+      </div>
+      <div class="car-card-body">
+        <div class="car-type">Bán tải điện · Off-road</div>
+        <div class="car-name">VF Wild</div>
+        <div class="car-subtitle">Adventure — Bán tải điện đầu tiên của VinFast</div>
+        <div class="car-specs">
+          <div class="spec-item"><span class="spec-value">500+<span class="spec-unit">km</span></span><span class="spec-label">Phạm vi</span></div>
+          <div class="spec-item"><span class="spec-value">350<span class="spec-unit">kW</span></span><span class="spec-label">Động cơ</span></div>
+          <div class="spec-item"><span class="spec-value">5<span class="spec-unit">chỗ</span></span><span class="spec-label">Số ghế</span></div>
+        </div>
+        <div class="car-price">Thông báo sớm</div>
+        <div class="car-actions">
+          <button class="car-btn car-btn-primary">Đăng ký nhận tin</button>
+          <button class="car-btn car-btn-secondary">Xem trước</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VF e34 -->
+    <div class="car-card animate-in" data-category="suv-c" data-price="690">
+      <div class="car-card-image">
+        <span class="car-badge electric">Thuần điện</span>
+        <img class="car-img"
+          src="https://static-cms-prod.vinfastauto.us/2024-05/vfe34-ext-01.webp"
+          alt="VinFast VF e34"
+          onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/VinFast_VF_e34_-_2021_CAVIMS.jpg/1280px-VinFast_VF_e34_-_2021_CAVIMS.jpg'">
+      </div>
+      <div class="car-card-body">
+        <div class="car-type">SUV Cỡ nhỏ · Thành thị</div>
+        <div class="car-name">VF e34</div>
+        <div class="car-subtitle">City Smart — Mẫu xe đầu tiên, di sản điện hoá</div>
+        <div class="car-specs">
+          <div class="spec-item"><span class="spec-value">318<span class="spec-unit">km</span></span><span class="spec-label">Phạm vi</span></div>
+          <div class="spec-item"><span class="spec-value">110<span class="spec-unit">kW</span></span><span class="spec-label">Động cơ</span></div>
+          <div class="spec-item"><span class="spec-value">5<span class="spec-unit">chỗ</span></span><span class="spec-label">Số ghế</span></div>
+        </div>
+        <div class="car-price">Từ 690.000.000 <small>VNĐ</small></div>
+        <div class="car-actions">
+          <button class="car-btn car-btn-primary">Tìm hiểu thêm</button>
+          <button class="car-btn car-btn-secondary">Báo giá</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- INFO BANNER -->
+<div class="info-banner animate-in">
+  <div class="info-banner-inner">
+    <div class="info-item">
+      <div class="info-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 2L12.5 7.5H18L13.5 11L15.5 16.5L10 13.5L4.5 16.5L6.5 11L2 7.5H7.5Z" stroke="#E31837" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="info-title">10 năm bảo hành</div>
+      <div class="info-desc">Bảo hành toàn diện 10 năm / 200.000 km trên pin và động cơ. Đội ngũ kỹ thuật 24/7 trên toàn quốc.</div>
+    </div>
+    <div class="info-item">
+      <div class="info-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="7" stroke="#E31837" stroke-width="1.2"/>
+          <path d="M7 10L9 12L13 8" stroke="#E31837" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="info-title">Sạc miễn phí</div>
+      <div class="info-desc">Hệ thống VinFast Smart Charging với hơn 3.000 trụ sạc toàn quốc. Sạc nhanh DC 150kW.</div>
+    </div>
+    <div class="info-item">
+      <div class="info-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M4 10C4 6.7 6.7 4 10 4s6 2.7 6 6" stroke="#E31837" stroke-width="1.2"/>
+          <path d="M2 13L4 10L6 13M18 7L16 10L14 7" stroke="#E31837" stroke-width="1.2" stroke-linejoin="round"/>
+          <path d="M16 10C16 13.3 13.3 16 10 16" stroke="#E31837" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <div class="info-title">Phần mềm OTA</div>
+      <div class="info-desc">Cập nhật phần mềm tự động qua mạng. Xe ngày càng thông minh hơn theo thời gian.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <span class="brand-name">VINFAST</span>
+        <p>Hành trình điện hoá Việt Nam. Thương hiệu xe điện Việt Nam vươn tầm thế giới — Mỹ, Canada, châu Âu, và châu Á.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Dòng xe</h4>
+          <ul>
+            <li><a href="#">VF 3</a></li><li><a href="#">VF 5</a></li><li><a href="#">VF 6</a></li>
+            <li><a href="#">VF 7</a></li><li><a href="#">VF 8</a></li><li><a href="#">VF 9</a></li><li><a href="#">VF Wild</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Dịch vụ</h4>
+          <ul>
+            <li><a href="#">Đặt lịch lái thử</a></li><li><a href="#">Báo giá online</a></li>
+            <li><a href="#">Tìm đại lý</a></li><li><a href="#">Sạc VinFast</a></li>
+            <li><a href="#">Bảo hành</a></li><li><a href="#">Phụ kiện chính hãng</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Về VinFast</h4>
+          <ul>
+            <li><a href="#">Câu chuyện thương hiệu</a></li><li><a href="#">Sản xuất</a></li>
+            <li><a href="#">Tin tức</a></li><li><a href="#">Nhà đầu tư</a></li>
+            <li><a href="#">Tuyển dụng</a></li><li><a href="#">Liên hệ</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 VinFast Auto Co., Ltd. — Thành viên Tập đoàn Vingroup. | <a href="#">Chính sách bảo mật</a> | <a href="#">Điều khoản sử dụng</a></p>
+      <p style="font-size:10px;color:rgba(255,255,255,.15)">Demo website — Không phải trang chính thức</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Nav scroll
+  const nav = document.getElementById('navbar');
+  window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 60));
+
+  // Filter
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const f = tab.dataset.filter;
+      let n = 0;
+      document.querySelectorAll('.car-card').forEach(c => {
+        const show = f === 'all' || c.dataset.category === f;
+        c.classList.toggle('hidden', !show);
+        if (show) n++;
+      });
+      document.getElementById('carCount').textContent = n;
+    });
+  });
+
+  // Sort
+  document.getElementById('sortSelect').addEventListener('change', function() {
+    const grid = document.getElementById('carsGrid');
+    const cards = [...grid.querySelectorAll('.car-card:not(.hidden)')];
+    cards.sort((a, b) => {
+      const pa = parseInt(a.dataset.price) || 0, pb = parseInt(b.dataset.price) || 0;
+      const na = a.querySelector('.car-name').textContent, nb = b.querySelector('.car-name').textContent;
+      const ra = parseInt(a.querySelector('.spec-value').textContent) || 0;
+      const rb = parseInt(b.querySelector('.spec-value').textContent) || 0;
+      if (this.value === 'Giá tăng dần') return pa - pb;
+      if (this.value === 'Giá giảm dần') return pb - pa;
+      if (this.value === 'Tên A–Z') return na.localeCompare(nb);
+      if (this.value === 'Phạm vi pin') return rb - ra;
+      return 0;
+    });
+    cards.forEach(c => grid.appendChild(c));
+  });
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.animate-in').forEach(el => obs.observe(el));
+</script>
 </body>
 </html>
+
